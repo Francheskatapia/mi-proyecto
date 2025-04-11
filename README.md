@@ -32,8 +32,10 @@ Este proyecto consiste en escanear puertos y hacer codigos en python junto con r
 
 | Nombre        | GitHub Usuario        |
 |---------------|------------------------|
-|Rodolfo Campos| [@Rodolfo054](https://github.com/juanperez) |
-|Leandro Rain| [@leoRV14](https://github.com/anagomez)   |
-|Cristian Herrera| [@Cristian-H-T] |
+|Rodolfo Campos| [@Rodolfo054].
+|Leandro Rain|   [@leoRV14].
+|Cristian Herrera| [@Cristian-H-T].
+|Francheska Tapia| [@FrancheskaTapia].
+
 
 
