@@ -1,4 +1,4 @@
-# Mi Proyecto
+# Scaner
 
 ## 📌 Descripción del proyecto
 
