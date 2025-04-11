@@ -6,17 +6,34 @@ Este proyecto consiste en escanear puertos y hacer codigos en python junto con r
 
 ---
 
-## ⚙️ Requisitos e instalación
+## ⚙️ Requisitos e instalación de un ejecutable en python
 
 ### Requisitos
 
 - Python 3.11 o superior
 - Sistema operativo: Windows
-- Dependencias necesarias (block de notas,python)
+- pyinstaller(herramienta para generar el .exe)
 
 ### Instalación
 
-1. Clonar el repositorio:
-   ```bash
-   git clone https://github.com/Francheskatapía/mi-proyecto.git
-   cd mi-proyecto
+
+
+
+
+
+## Ejemplo de uso
+
+
+
+
+
+
+## 👥 Integrantes del equipo
+
+| Nombre        | GitHub Usuario        |
+|---------------|------------------------|
+|Rodolfo Campos| [@Rodolfo054](https://github.com/juanperez) |
+|Leandro Rain| [@leoRV14](https://github.com/anagomez)   |
+|Cristian Herrera| [@Cristian-H-T] |
+
+
