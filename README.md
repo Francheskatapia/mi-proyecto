@@ -1,4 +1,4 @@
-# Scaner
+# Portscan
 
 ## 📌 Descripción del proyecto
 
@@ -13,11 +13,6 @@ Este proyecto consiste en escanear puertos y hacer codigos en python junto con r
 - Python 3.11 o superior
 - Sistema operativo: Windows
 - pyinstaller(herramienta para generar el .exe)
-
-### Instalación
-
-
-
 
 
 
