@@ -162,5 +162,5 @@ if __name__ == "__main__":
             print("❌ Argumentos inválidos. Por favor usa --ip y opcionalmente --mascara o --puertos.")
     else:
         print("❌ Opción no válida. Por favor, elige 1 o 2.")
-    # me sejoro el uso de argparse (detalles menores de funcionamiento) y se mejoró la presentación de los resultados en pantalla y en el archivo de texto
+    # me sejoro el uso de argparse (detalles menores de funcionamiento) y se mejoró la presentación de los resultados en pantalla y en el archivo de texto.
     
