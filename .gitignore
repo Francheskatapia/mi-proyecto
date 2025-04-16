@@ -1,0 +1,18 @@
+# Archivos de Python
+__pycache__/
+*.py[cod]
+*.so
+
+# Entorno virtual
+venv/
+.env
+
+# Ejecutables y carpetas de compilación
+*.exe
+dist/
+build/
+
+# Archivos de logs y temporales
+*.log
+*.tmp
+.DS_Store
