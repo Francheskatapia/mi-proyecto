@@ -22,8 +22,20 @@ def escanear_puerto(ip, puerto, timeout=1):
     except (socket.timeout, socket.error):
         return puerto, False
 
+def obtener_banner(ip, puerto, timeout=1):
+    """Intenta obtener el banner del servicio en un puerto abierto."""
+    try:
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.settimeout(timeout)
+            s.connect((str(ip), puerto))
+            s.sendall(b"\r\n")  # Enviar una solicitud simple
+            banner = s.recv(1024).decode('utf-8', errors='ignore').strip()
+            return banner if banner else "No se pudo obtener el banner"
+    except Exception:
+        return "No se pudo obtener el banner"
+
 def escanear_host(ip, puertos_escanear, timeout=1):
-    """Escanea múltiples puertos en un host y retorna los abiertos"""
+    """Escanea múltiples puertos en un host y retorna los abiertos con banners."""
     puertos_abiertos = []
     with concurrent.futures.ThreadPoolExecutor(max_workers=100) as executor:
         futures = {executor.submit(escanear_puerto, ip, puerto, timeout): puerto for puerto in puertos_escanear}
@@ -31,13 +43,14 @@ def escanear_host(ip, puertos_escanear, timeout=1):
         for future in concurrent.futures.as_completed(futures):
             puerto, abierto = future.result()
             if abierto:
-                puertos_abiertos.append(puerto)
+                banner = obtener_banner(ip, puerto, timeout)
+                puertos_abiertos.append((puerto, banner))
     
     return ip, puertos_abiertos
 
 def escanear_red(rango_ip, area_resultados, progreso, modo_escaneo="rapido", archivo_nombre=None):
     area_resultados.delete("1.0", tk.END)
-    area_resultados.insert(tk.END, f"Escaneando {rango_ip} (Modo: {'Rápido' if modo_escaneo == 'rapido' else 'Completo'})...\n")
+    area_resultados.insert(tk.END, f"Escaneando {rango_ip} (Modo: {'Rápido' if modo_escaneo == 'rapido' else 'Completo' if modo_escaneo == 'completo' else 'Específico'})...\n")
     progreso['value'] = 0
     ventana.update_idletasks()
 
@@ -48,13 +61,26 @@ def escanear_red(rango_ip, area_resultados, progreso, modo_escaneo="rapido", arc
         hosts_activos = []
         
         # Definir puertos a escanear según el modo
-        puertos_escanear = PUERTOS_COMUNES if modo_escaneo == "rapido" else range(1, 65536)
-        
+        if modo_escaneo == "rapido":
+            puertos_escanear = PUERTOS_COMUNES
+        elif modo_escaneo == "completo":
+            puertos_escanear = range(1, 65536)
+        elif modo_escaneo == "especifico":
+            try:
+                puertos_escanear = [int(p) for p in entrada_puertos.get().split(",") if p.strip().isdigit()]
+                if not puertos_escanear:
+                    raise ValueError("No se ingresaron puertos válidos.")
+            except ValueError as e:
+                area_resultados.insert(tk.END, f"Error: {e}\n")
+                return
+
         for i, host in enumerate(hosts):
             ip, puertos_abiertos = escanear_host(host, puertos_escanear)
             if puertos_abiertos:
                 hosts_activos.append(ip)
-                info_host = f"Host activo: {ip}\n  Puertos abiertos: {puertos_abiertos}\n"
+                info_host = f"Host activo: {ip}\n"
+                for puerto, banner in puertos_abiertos:
+                    info_host += f"  Puerto {puerto} abierto - Banner: {banner}\n"
                 area_resultados.insert(tk.END, info_host)
                 if archivo_nombre:
                     with open(archivo_nombre, "a") as archivo:
@@ -90,6 +116,12 @@ modo_escaneo = tk.StringVar(value="rapido")
 tk.Label(frame_principal, text="Modo de escaneo:").pack(pady=5)
 tk.Radiobutton(frame_principal, text="Rápido (20 puertos comunes)", variable=modo_escaneo, value="rapido").pack()
 tk.Radiobutton(frame_principal, text="Completo (todos los puertos)", variable=modo_escaneo, value="completo").pack()
+tk.Radiobutton(frame_principal, text="Puertos específicos", variable=modo_escaneo, value="especifico").pack()
+
+# Cuadro de texto para ingresar puertos específicos (siempre visible)
+tk.Label(frame_principal, text="Puertos específicos (opcional, separados por comas):").pack(pady=5)
+entrada_puertos = tk.Entry(frame_principal, width=40)
+entrada_puertos.pack()
 
 tk.Button(frame_principal, text="Iniciar Escaneo", command=lambda: iniciar_escaneo()).pack(pady=10)
 
@@ -145,5 +177,3 @@ def generar_nombre_archivo_personalizado():
     return None
 
 ventana.mainloop()
-# se quitaron librerias externas para implementar un escaner de puertos en python puro.
-# se agregaron mejoras en la interfaz grafica, como un scrollbar.
