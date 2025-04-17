@@ -112,16 +112,28 @@ def escanear_red(rango_ip, area_resultados, progreso, modo_escaneo="rapido", arc
                 area_resultados.insert(tk.END, f"Error: {e}\n")
                 return
 
+        # Crear encabezado del archivo si se guarda
+        if archivo_nombre:
+            with open(archivo_nombre, "w") as archivo:
+                archivo.write(f"Resultados del Escaneo de Red\n")
+                archivo.write(f"Fecha y hora: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+                archivo.write("=" * 50 + "\n\n")
+
         for i, host in enumerate(hosts):
             ip, puertos_abiertos, so_detectado = escanear_host(host, puertos_escanear, detectar_so=detectar_so_var.get())
             if puertos_abiertos:
                 hosts_activos.append(ip)
                 info_host = f"Host activo: {ip}\n"
+                info_host += "-" * 50 + "\n"
+                info_host += "Puertos abiertos:\n"
                 for puerto, banner in puertos_abiertos:
-                    info_host += f"  Puerto {puerto} abierto - Banner: {banner}\n"
+                    info_host += f"  - Puerto {puerto}: {banner}\n"
                 if detectar_so_var.get() and so_detectado:
-                    info_host += f"  Sistema Operativo detectado: {so_detectado}\n"
+                    info_host += f"Sistema Operativo detectado: {so_detectado}\n"
+                info_host += "-" * 50 + "\n\n"
                 area_resultados.insert(tk.END, info_host)
+
+                # Guardar en el archivo
                 if archivo_nombre:
                     with open(archivo_nombre, "a") as archivo:
                         archivo.write(info_host)
@@ -146,63 +158,203 @@ def advertencia_escaneo_completo():
             "El escaneo completo puede tomar mucho tiempo dependiendo del rango de IP y la cantidad de puertos."
         )
 
-# Interfaz gráfica mejorada
+# Interfaz gráfica inspirada en el IDLE de Nmap con colores más suaves
 ventana = tk.Tk()
-ventana.title("Escáner de Red - Python Puro")
-ventana.geometry("800x700")
-ventana.configure(bg="#f0f0f0")  # Fondo claro
+ventana.title("Escáner de Red - Estilo Nmap")
+ventana.geometry("900x600")
+ventana.configure(bg="#1e1e1e")  # Fondo oscuro
 
-# Frame principal
-frame_principal = ttk.Frame(ventana, padding=10)
-frame_principal.pack(fill=tk.BOTH, expand=True)
+# Frame principal para dividir en dos columnas
+frame_principal = tk.Frame(ventana, bg="#1e1e1e")
+frame_principal.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
 
-# Título
-titulo = ttk.Label(frame_principal, text="Escáner de Red", font=("Arial", 18, "bold"))
-titulo.pack(pady=10)
+# Frame izquierdo para configuraciones y opciones
+frame_izquierdo = tk.Frame(frame_principal, bg="#1e1e1e")
+frame_izquierdo.pack(side=tk.LEFT, fill=tk.Y, padx=10, pady=10)
 
-# Entrada de rango de IP
-ttk.Label(frame_principal, text="Rango de IP (ej: 192.168.0.0/24 o 192.168.1.1):", font=("Arial", 10)).pack(pady=5, anchor="w")
-entrada_rango = ttk.Entry(frame_principal, width=50)
-entrada_rango.pack(pady=5)
+# Frame derecho para resultados
+frame_derecho = tk.Frame(frame_principal, bg="#1e1e1e")
+frame_derecho.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True, padx=10, pady=10)
 
-# Selector de modo de escaneo
+# Título principal
+titulo = tk.Label(
+    frame_izquierdo,
+    text="Escáner de Red - Estilo Nmap",
+    font=("Consolas", 16, "bold"),
+    fg="#5cb85c",  # Verde suave
+    bg="#1e1e1e"
+)
+titulo.pack(pady=10, anchor="w")
+
+# Nota sobre el tiempo de escaneo
+nota_tiempo = tk.Label(
+    frame_izquierdo,
+    text="Nota: El tiempo de escaneo puede variar dependiendo de la cantidad de hosts y/o la latencia de la red.",
+    font=("Consolas", 9),
+    fg="#dcdcdc",  # Gris claro
+    bg="#1e1e1e",
+    wraplength=300,  # Ajustar el ancho del texto
+    justify="left"
+)
+nota_tiempo.pack(pady=5, anchor="w")
+
+# Frame para la configuración de escaneo
+frame_configuracion = tk.Frame(frame_izquierdo, bg="#1e1e1e")
+frame_configuracion.pack(fill=tk.X, pady=10)
+
+# Rango de IP
+tk.Label(
+    frame_configuracion,
+    text="Rango de IP:",
+    font=("Consolas", 10),
+    fg="#dcdcdc",  # Gris claro
+    bg="#1e1e1e"
+).grid(row=0, column=0, sticky="w", padx=5, pady=5)
+entrada_rango = tk.Entry(
+    frame_configuracion,
+    width=30,
+    bg="#2b2b2b",
+    fg="#dcdcdc",
+    insertbackground="#dcdcdc",
+    font=("Consolas", 10)
+)
+entrada_rango.grid(row=0, column=1, padx=5, pady=5)
+
+# Modo de escaneo
+tk.Label(
+    frame_configuracion,
+    text="Modo de escaneo:",
+    font=("Consolas", 10),
+    fg="#dcdcdc",
+    bg="#1e1e1e"
+).grid(row=1, column=0, sticky="w", padx=5, pady=5)
 modo_escaneo = tk.StringVar(value="rapido")
-ttk.Label(frame_principal, text="Modo de escaneo:", font=("Arial", 10)).pack(pady=5, anchor="w")
-ttk.Radiobutton(frame_principal, text="Rápido (20 puertos comunes)", variable=modo_escaneo, value="rapido", command=advertencia_escaneo_completo).pack(anchor="w")
-ttk.Radiobutton(frame_principal, text="Completo (todos los puertos)", variable=modo_escaneo, value="completo", command=advertencia_escaneo_completo).pack(anchor="w")
-ttk.Radiobutton(frame_principal, text="Puertos específicos", variable=modo_escaneo, value="especifico", command=advertencia_escaneo_completo).pack(anchor="w")
+tk.Radiobutton(
+    frame_configuracion,
+    text="Rápido",
+    variable=modo_escaneo,
+    value="rapido",
+    font=("Consolas", 10),
+    fg="#dcdcdc",
+    bg="#1e1e1e",
+    selectcolor="#2b2b2b"
+).grid(row=1, column=1, sticky="w", padx=5)
+tk.Radiobutton(
+    frame_configuracion,
+    text="Completo",
+    variable=modo_escaneo,
+    value="completo",
+    font=("Consolas", 10),
+    fg="#dcdcdc",
+    bg="#1e1e1e",
+    selectcolor="#2b2b2b",
+    command=lambda: advertencia_escaneo_completo()
+).grid(row=2, column=1, sticky="w", padx=5)
+tk.Radiobutton(
+    frame_configuracion,
+    text="Puertos específicos",
+    variable=modo_escaneo,
+    value="especifico",
+    font=("Consolas", 10),
+    fg="#dcdcdc",
+    bg="#1e1e1e",
+    selectcolor="#2b2b2b"
+).grid(row=3, column=1, sticky="w", padx=5)
 
-# Cuadro de texto para ingresar puertos específicos
-ttk.Label(frame_principal, text="Puertos específicos (opcional, separados por comas):", font=("Arial", 10)).pack(pady=5, anchor="w")
-entrada_puertos = ttk.Entry(frame_principal, width=50)
-entrada_puertos.pack(pady=5)
+# Entrada de puertos específicos
+tk.Label(
+    frame_configuracion,
+    text="Puertos específicos (opcional):",
+    font=("Consolas", 10),
+    fg="#dcdcdc",
+    bg="#1e1e1e"
+).grid(row=4, column=0, sticky="w", padx=5, pady=5)
+entrada_puertos = tk.Entry(
+    frame_configuracion,
+    width=30,
+    bg="#2b2b2b",
+    fg="#dcdcdc",
+    insertbackground="#dcdcdc",
+    font=("Consolas", 10)
+)
+entrada_puertos.grid(row=4, column=1, padx=5, pady=5)
 
 # Opciones adicionales
-opciones_frame = ttk.Frame(frame_principal)
-opciones_frame.pack(pady=10, fill=tk.X)
+frame_opciones = tk.Frame(frame_izquierdo, bg="#1e1e1e")
+frame_opciones.pack(fill=tk.X, pady=10)
 
 guardar_resultados_var = tk.BooleanVar(value=True)
-ttk.Checkbutton(opciones_frame, text="Guardar resultados en archivo", variable=guardar_resultados_var).pack(side=tk.LEFT, padx=5)
+tk.Checkbutton(
+    frame_opciones,
+    text="Guardar resultados en archivo",
+    variable=guardar_resultados_var,
+    font=("Consolas", 10),
+    fg="#dcdcdc",
+    bg="#1e1e1e",
+    selectcolor="#2b2b2b"
+).pack(anchor="w", pady=2)
 
 detectar_so_var = tk.BooleanVar(value=False)
-ttk.Checkbutton(opciones_frame, text="Detectar sistema operativo remoto", variable=detectar_so_var).pack(side=tk.LEFT, padx=5)
+tk.Checkbutton(
+    frame_opciones,
+    text="Detectar sistema operativo remoto",
+    variable=detectar_so_var,
+    font=("Consolas", 10),
+    fg="#dcdcdc",
+    bg="#1e1e1e",
+    selectcolor="#2b2b2b"
+).pack(anchor="w", pady=2)
+
+# Nota adicional para la detección de SO remoto
+tk.Label(
+    frame_opciones,
+    text="(Recomendado para un solo host a la vez)",
+    font=("Consolas", 9),
+    fg="#ff7f7f",  # Rojo suave
+    bg="#1e1e1e"
+).pack(anchor="w", pady=2)
 
 # Botón para iniciar el escaneo
-boton_iniciar = ttk.Button(frame_principal, text="Iniciar Escaneo", command=lambda: iniciar_escaneo())
-boton_iniciar.pack(pady=10)
+boton_iniciar = tk.Button(
+    frame_izquierdo,
+    text="Iniciar Escaneo",
+    command=lambda: iniciar_escaneo(),
+    font=("Consolas", 10),
+    bg="#5cb85c",  # Verde suave
+    fg="#000000",
+    activebackground="#2b2b2b",
+    activeforeground="#5cb85c"
+)
+boton_iniciar.pack(pady=10, anchor="w")
 
 # Barra de progreso
-barra_progreso = ttk.Progressbar(frame_principal, length=600, mode='determinate')
-barra_progreso.pack(pady=10, fill=tk.X)
+barra_progreso = ttk.Progressbar(frame_izquierdo, length=300, mode='determinate')
+barra_progreso.pack(pady=10, anchor="w")
 
 # Área de resultados con scrollbar
-frame_resultados = ttk.LabelFrame(frame_principal, text="Resultados", padding=10)
-frame_resultados.pack(fill=tk.BOTH, expand=True, pady=10)
+frame_resultados = tk.LabelFrame(
+    frame_derecho,
+    text="Resultados",
+    font=("Consolas", 10),
+    fg="#5cb85c",  # Verde suave
+    bg="#1e1e1e"
+)
+frame_resultados.pack(fill=tk.BOTH, expand=True)
 
-scrollbar = ttk.Scrollbar(frame_resultados)
+scrollbar = tk.Scrollbar(frame_resultados, bg="#2b2b2b")
 scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
 
-area_resultados = tk.Text(frame_resultados, height=20, width=80, yscrollcommand=scrollbar.set, wrap="word", bg="#ffffff", fg="#000000", font=("Courier New", 10))
+area_resultados = tk.Text(
+    frame_resultados,
+    height=20,
+    width=50,
+    yscrollcommand=scrollbar.set,
+    wrap="word",
+    bg="#1e1e1e",
+    fg="#dcdcdc",
+    font=("Consolas", 10),
+    insertbackground="#dcdcdc"
+)
 area_resultados.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
 
 scrollbar.config(command=area_resultados.yview)
