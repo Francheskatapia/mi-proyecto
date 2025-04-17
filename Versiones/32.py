@@ -5,6 +5,7 @@ import datetime
 import socket
 import ipaddress
 import concurrent.futures
+from scapy.all import IP, TCP, sr1
 
 # Lista de puertos comunes (Top 20)
 PUERTOS_COMUNES = [
@@ -34,9 +35,42 @@ def obtener_banner(ip, puerto, timeout=1):
     except Exception:
         return "No se pudo obtener el banner"
 
-def escanear_host(ip, puertos_escanear, timeout=1):
-    """Escanea múltiples puertos en un host y retorna los abiertos con banners."""
+# Función para intentar detectar el sistema operativo remoto usando Scapy
+def detectar_sistema_operativo(ip):
+    """Intenta detectar el sistema operativo remoto usando TCP/IP fingerprinting con Scapy."""
+    try:
+        # Crear un paquete TCP SYN al puerto 80
+        paquete = IP(dst=ip) / TCP(dport=80, flags="S")
+        respuesta = sr1(paquete, timeout=2, verbose=0)  # Enviar el paquete y esperar respuesta
+
+        if respuesta and respuesta.haslayer(TCP):
+            # Analizar la respuesta TCP para inferir el sistema operativo
+            flags = respuesta[TCP].flags
+            window_size = respuesta[TCP].window
+
+            # Ejemplo básico de análisis basado en el tamaño de la ventana
+            if flags == "SA":  # SYN-ACK recibido
+                if window_size == 65535:
+                    return "Probablemente Windows"
+                elif window_size == 5840:
+                    return "Probablemente Linux"
+                elif window_size == 14600:
+                    return "Probablemente FreeBSD"
+                else:
+                    return f"SO desconocido (tamaño de ventana: {window_size})"
+            else:
+                return "No se pudo detectar el sistema operativo (respuesta inesperada)"
+        else:
+            return "No se recibió respuesta del host"
+    except Exception as e:
+        return f"Error al detectar el sistema operativo: {e}"
+
+def escanear_host(ip, puertos_escanear, timeout=1, detectar_so=False):
+    """Escanea múltiples puertos en un host y retorna los abiertos con banners y SO si está habilitado."""
     puertos_abiertos = []
+    so_detectado = None
+
+    # Escaneo de puertos
     with concurrent.futures.ThreadPoolExecutor(max_workers=100) as executor:
         futures = {executor.submit(escanear_puerto, ip, puerto, timeout): puerto for puerto in puertos_escanear}
         
@@ -46,7 +80,11 @@ def escanear_host(ip, puertos_escanear, timeout=1):
                 banner = obtener_banner(ip, puerto, timeout)
                 puertos_abiertos.append((puerto, banner))
     
-    return ip, puertos_abiertos
+    # Escaneo de sistema operativo si está habilitado
+    if detectar_so:
+        so_detectado = detectar_sistema_operativo(str(ip))  # Convertir ip a cadena
+    
+    return ip, puertos_abiertos, so_detectado
 
 def escanear_red(rango_ip, area_resultados, progreso, modo_escaneo="rapido", archivo_nombre=None):
     area_resultados.delete("1.0", tk.END)
@@ -75,12 +113,14 @@ def escanear_red(rango_ip, area_resultados, progreso, modo_escaneo="rapido", arc
                 return
 
         for i, host in enumerate(hosts):
-            ip, puertos_abiertos = escanear_host(host, puertos_escanear)
+            ip, puertos_abiertos, so_detectado = escanear_host(host, puertos_escanear, detectar_so=detectar_so_var.get())
             if puertos_abiertos:
                 hosts_activos.append(ip)
                 info_host = f"Host activo: {ip}\n"
                 for puerto, banner in puertos_abiertos:
                     info_host += f"  Puerto {puerto} abierto - Banner: {banner}\n"
+                if detectar_so_var.get() and so_detectado:
+                    info_host += f"  Sistema Operativo detectado: {so_detectado}\n"
                 area_resultados.insert(tk.END, info_host)
                 if archivo_nombre:
                     with open(archivo_nombre, "a") as archivo:
@@ -127,6 +167,10 @@ tk.Button(frame_principal, text="Iniciar Escaneo", command=lambda: iniciar_escan
 
 guardar_resultados_var = tk.BooleanVar(value=True)
 tk.Checkbutton(frame_principal, text="Guardar resultados en archivo", variable=guardar_resultados_var).pack()
+
+# Checkbox para habilitar el escaneo de sistema operativo
+detectar_so_var = tk.BooleanVar(value=False)
+tk.Checkbutton(frame_principal, text="Detectar sistema operativo remoto", variable=detectar_so_var).pack()
 
 barra_progreso = ttk.Progressbar(frame_principal, length=500, mode='determinate')
 barra_progreso.pack(pady=10, fill=tk.X)
@@ -177,3 +221,4 @@ def generar_nombre_archivo_personalizado():
     return None
 
 ventana.mainloop()
+# se implemento opcion puertos especificos
