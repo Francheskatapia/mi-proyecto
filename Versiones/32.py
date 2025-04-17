@@ -145,3 +145,5 @@ def generar_nombre_archivo_personalizado():
     return None
 
 ventana.mainloop()
+# se quitaron librerias externas para implementar un escaner de puertos en python puro.
+# se agregaron mejoras en la interfaz grafica, como un scrollbar.
