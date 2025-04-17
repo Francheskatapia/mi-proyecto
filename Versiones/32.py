@@ -138,55 +138,76 @@ def escanear_red(rango_ip, area_resultados, progreso, modo_escaneo="rapido", arc
     except Exception as e:
         area_resultados.insert(tk.END, f"Error durante el escaneo: {e}\n")
 
-# Interfaz gráfica actualizada
+# Función para mostrar una advertencia al seleccionar el escaneo completo
+def advertencia_escaneo_completo():
+    if modo_escaneo.get() == "completo":
+        messagebox.showinfo(
+            "Advertencia",
+            "El escaneo completo puede tomar mucho tiempo dependiendo del rango de IP y la cantidad de puertos."
+        )
+
+# Interfaz gráfica mejorada
 ventana = tk.Tk()
 ventana.title("Escáner de Red - Python Puro")
-ventana.geometry("700x600")
+ventana.geometry("800x700")
+ventana.configure(bg="#f0f0f0")  # Fondo claro
 
 # Frame principal
-frame_principal = tk.Frame(ventana, padx=10, pady=10)
+frame_principal = ttk.Frame(ventana, padding=10)
 frame_principal.pack(fill=tk.BOTH, expand=True)
 
-tk.Label(frame_principal, text="Rango de IP (ej: 192.168.0.0/24 o 192.168.1.1):").pack(pady=5)
-entrada_rango = tk.Entry(frame_principal, width=40)
-entrada_rango.pack()
+# Título
+titulo = ttk.Label(frame_principal, text="Escáner de Red", font=("Arial", 18, "bold"))
+titulo.pack(pady=10)
+
+# Entrada de rango de IP
+ttk.Label(frame_principal, text="Rango de IP (ej: 192.168.0.0/24 o 192.168.1.1):", font=("Arial", 10)).pack(pady=5, anchor="w")
+entrada_rango = ttk.Entry(frame_principal, width=50)
+entrada_rango.pack(pady=5)
 
 # Selector de modo de escaneo
 modo_escaneo = tk.StringVar(value="rapido")
-tk.Label(frame_principal, text="Modo de escaneo:").pack(pady=5)
-tk.Radiobutton(frame_principal, text="Rápido (20 puertos comunes)", variable=modo_escaneo, value="rapido").pack()
-tk.Radiobutton(frame_principal, text="Completo (todos los puertos)", variable=modo_escaneo, value="completo").pack()
-tk.Radiobutton(frame_principal, text="Puertos específicos", variable=modo_escaneo, value="especifico").pack()
+ttk.Label(frame_principal, text="Modo de escaneo:", font=("Arial", 10)).pack(pady=5, anchor="w")
+ttk.Radiobutton(frame_principal, text="Rápido (20 puertos comunes)", variable=modo_escaneo, value="rapido", command=advertencia_escaneo_completo).pack(anchor="w")
+ttk.Radiobutton(frame_principal, text="Completo (todos los puertos)", variable=modo_escaneo, value="completo", command=advertencia_escaneo_completo).pack(anchor="w")
+ttk.Radiobutton(frame_principal, text="Puertos específicos", variable=modo_escaneo, value="especifico", command=advertencia_escaneo_completo).pack(anchor="w")
 
-# Cuadro de texto para ingresar puertos específicos (siempre visible)
-tk.Label(frame_principal, text="Puertos específicos (opcional, separados por comas):").pack(pady=5)
-entrada_puertos = tk.Entry(frame_principal, width=40)
-entrada_puertos.pack()
+# Cuadro de texto para ingresar puertos específicos
+ttk.Label(frame_principal, text="Puertos específicos (opcional, separados por comas):", font=("Arial", 10)).pack(pady=5, anchor="w")
+entrada_puertos = ttk.Entry(frame_principal, width=50)
+entrada_puertos.pack(pady=5)
 
-tk.Button(frame_principal, text="Iniciar Escaneo", command=lambda: iniciar_escaneo()).pack(pady=10)
+# Opciones adicionales
+opciones_frame = ttk.Frame(frame_principal)
+opciones_frame.pack(pady=10, fill=tk.X)
 
 guardar_resultados_var = tk.BooleanVar(value=True)
-tk.Checkbutton(frame_principal, text="Guardar resultados en archivo", variable=guardar_resultados_var).pack()
+ttk.Checkbutton(opciones_frame, text="Guardar resultados en archivo", variable=guardar_resultados_var).pack(side=tk.LEFT, padx=5)
 
-# Checkbox para habilitar el escaneo de sistema operativo
 detectar_so_var = tk.BooleanVar(value=False)
-tk.Checkbutton(frame_principal, text="Detectar sistema operativo remoto", variable=detectar_so_var).pack()
+ttk.Checkbutton(opciones_frame, text="Detectar sistema operativo remoto", variable=detectar_so_var).pack(side=tk.LEFT, padx=5)
 
-barra_progreso = ttk.Progressbar(frame_principal, length=500, mode='determinate')
+# Botón para iniciar el escaneo
+boton_iniciar = ttk.Button(frame_principal, text="Iniciar Escaneo", command=lambda: iniciar_escaneo())
+boton_iniciar.pack(pady=10)
+
+# Barra de progreso
+barra_progreso = ttk.Progressbar(frame_principal, length=600, mode='determinate')
 barra_progreso.pack(pady=10, fill=tk.X)
 
 # Área de resultados con scrollbar
-frame_resultados = tk.Frame(frame_principal)
-frame_resultados.pack(fill=tk.BOTH, expand=True)
+frame_resultados = ttk.LabelFrame(frame_principal, text="Resultados", padding=10)
+frame_resultados.pack(fill=tk.BOTH, expand=True, pady=10)
 
-scrollbar = tk.Scrollbar(frame_resultados)
+scrollbar = ttk.Scrollbar(frame_resultados)
 scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
 
-area_resultados = tk.Text(frame_resultados, height=20, width=80, yscrollcommand=scrollbar.set)
+area_resultados = tk.Text(frame_resultados, height=20, width=80, yscrollcommand=scrollbar.set, wrap="word", bg="#ffffff", fg="#000000", font=("Courier New", 10))
 area_resultados.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
 
 scrollbar.config(command=area_resultados.yview)
 
+# Función para iniciar el escaneo
 def iniciar_escaneo():
     rango_ip = entrada_rango.get()
     if not rango_ip:
@@ -205,6 +226,7 @@ def iniciar_escaneo():
     )
     hilo.start()
 
+# Función para generar un nombre de archivo personalizado
 def generar_nombre_archivo_personalizado():
     fecha_hora = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
     nombre_sugerido = f"resultados_escaneo_{fecha_hora}.txt"
@@ -221,4 +243,4 @@ def generar_nombre_archivo_personalizado():
     return None
 
 ventana.mainloop()
-# se implemento opcion puertos especificos
+# Mejora en la interfaz gráfica para una mejor experiencia de usuario.
