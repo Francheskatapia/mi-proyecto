@@ -1,4 +1,4 @@
-# Portscan
+[requerimientos.txt](https://github.com/user-attachments/files/19799730/requerimientos.txt)# Portscan
 
 ## 📌 Descripción del proyecto
 
@@ -19,6 +19,9 @@ Este proyecto consiste en escanear puertos y hacer codigos en python junto con r
 ## Ejemplo de uso
 
 
+[UploadScapy
+Tikinter
+Pyinstallering requerimientos.txt…]()
 
 
 
