@@ -395,4 +395,4 @@ def generar_nombre_archivo_personalizado():
     return None
 
 ventana.mainloop()
-# Mejora en la interfaz gráfica para una mejor experiencia de usuario.
+# Mejora en la interfaz gráfica para imitar la GUI de Nmap.
