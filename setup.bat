@@ -39,6 +39,6 @@ pyinstaller --onefile --noconsole Port_scan_archives\32.py
 
 echo.
 echo ================================
-echo Instalación completada. El ejecutable está en la carpeta dist\ (Comprueba la Carpeta donde clonaste el repositorio)
+echo Instalación completada. El ejecutable está en la carpeta dist\. Comprueba la Carpeta donde clonaste el repositorio.
 echo ================================
 pause
