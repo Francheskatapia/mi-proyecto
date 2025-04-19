@@ -1,18 +1,26 @@
-# Archivos de Python
-__pycache__/
-*.py[cod]
-*.so
-
-# Entorno virtual
-venv/
-.env
-
-# Ejecutables y carpetas de compilación
-*.exe
+# Ignorar carpeta de archivos compilados por PyInstaller
 dist/
 build/
+*.spec
 
-# Archivos de logs y temporales
+# Ignorar entorno virtual (si llegás a crearlo dentro del repo)
+venv/
+
+# Carpeta con versiones anteriores que no querés rastrear
+Versiones anteriores/
+
+# Carpeta de pruebas que no debería ir al repo final
+Pruebas de Funcionamiento/
+
+# Caches de Python
+__pycache__/
+*.py[cod]
+
+# Archivos del sistema
+.DS_Store
+Thumbs.db
+
+# Logs y archivos temporales
 *.log
 *.tmp
-.DS_Store
+*.bak
