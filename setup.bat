@@ -19,10 +19,6 @@ if errorlevel 1 (
     exit /b
 )
 
-:: Clonar repositorio
-echo Clonando repositorio...
-git clone https://github.com/Francheskatap1a/mi-proyecto.git
-cd mi-proyecto
 
 :: Crear entorno virtual
 echo Creando entorno virtual...
@@ -43,6 +39,6 @@ pyinstaller --onefile --noconsole Port_scan_archives\32.py
 
 echo.
 echo ================================
-echo Instalación completada. El ejecutable está en la carpeta dist\
+echo Instalación completada. El ejecutable está en la carpeta dist\ (Comprueba la Carpeta donde clonaste el repositorio)
 echo ================================
 pause
